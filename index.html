@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js">// Created by Swarup Mahato
+
+        //</script><script type="text/babel">
+        let React, {useState, useRef, createContext, useContext} = React;
+        let { createRoot } = ReactDOM;
+        
+        const AppContext = createContext();
+        const AppProvider = ({children}) =>{
+        const [value,setValue] = useState("0");
+         const [equal,setEqual] = useState();
+         const [isDark,setIsdark] = useState(true);
+         const [Icon,setIcon] = useState("dark_mode");
+         const [isBg,setIsBg] = useState(true);
+         const Values = {
+             value,setValue,
+             equal,setEqual,
+             isDark,setIsdark,
+             Icon,setIcon,
+             isBg,setIsBg
+         }
+            return(
+               <AppContext.Provider value={Values}>
+                {children}
+               </AppContext.Provider>
+            );
+        }
+        const Layout = () =>{
+         const {value,setValue,
+             equal,setEqual,
+             isDark,setIsdark,
+             Icon,setIcon,setIsBg} = useContext(AppContext);
+         const layoutRef = useRef(null);
+         const AppRef = useRef(null);
+         
+         const ModeSwitch = () =>{
+             isDark ? (document.documentElement.classList.add("dark"),setIsdark(!isDark),setIcon("light_mode"),setIsBg(false)):(document.documentElement.classList.remove("dark"),setIsdark(!isDark),setIcon("dark_mode"), setIsBg(true));
+         }
+         
+         const Insert = (val) =>{
+           const visualToCalculation = {
+            '÷': '/',
+            '×': '*',
+          };
+          const calculationSymbol = visualToCalculation[val] || val;
+          let newValue =
+          value === 0 || value === "0" ? String(val) : value + String(val);
+        
+        if (String(value).charAt(0) === "=") {
+          newValue = String(value).slice(1) + String(val);
+        }
+        setValue(newValue);
+        }
+         
+         const Clear = () =>{
+             setValue("0");
+             setEqual("");
+         }
+         const Delete = () =>{
+           const newValue = value === 0 || value === "0" || value === "" || value === "Syntax Error" ? "0" : value.slice(0,-1);
+           setValue(newValue===""?0:newValue);
+         }
+         const Equal = () => {
+          try {
+            const result = new Function('return ' + value.replace(/÷/g, '/').replace(/×/g, '*').replace(/²/g, '**2').replace(/EXP/g, '*10'))();
+            const decimalLength = (result.toString().split('.')[1] || '').length;
+            const resultWithFixedDecimals = decimalLength > 5 ? result.toFixed(5) : result;
+            setValue('=' + String(resultWithFixedDecimals));
+            setEqual(String(value));
+          } catch {
+            setEqual(String(value));
+            setValue('Syntax Error');
+          }
+        };
+        
+        const Close = () =>{
+           layoutRef.current.style.transform='scale(0)'; 
+           AppRef.current.style.display="flex";
+        }
+        
+        const BackWide = () =>{
+           layoutRef.current.style.transform='scale(1)'; 
+        }
+        
+        const Wide = () =>{
+           layoutRef.current.style.transform='scale(1.15)'; 
+        }
+        
+        const Open = () =>{
+            layoutRef.current.style.transform='scale(1)'; 
+            AppRef.current.style.display="none";
+        }
+            return(
+             <div className="w-full max-h-[100%] grid place-items-center relative">
+               {/*App Icon*/}
+               <div className="w-[80px] h-[80px] rounded-2xl flex items-center justify-center hidden absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] cursor-pointer transform transition-all active:scale-90 shadow-[inset_-3px_-5px_5px_rgba(0,0,0,.1)] dark:shadow-[inset_-3px_-5px_5px_rgba(255,255,255,.1)]" onClick={Open} ref={AppRef} style={{"backgroundImage":"url(https://cdn.jim-nielsen.com/macos/128/calculator-2021-04-29.png)","backgroundSize":"cover"}}>
+               </div>
+               {/*Calculator Body*/}
+                <div className="w-[85%] sm:w-[65%] md:max-2xl:w-[400px] overflow-hidden h-auto pb-1.5 bg-slate-200 dark:bg-slate-900 backdrop-blur-md bg-opacity-60 dark:bg-opacity-60 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] dark:shadow-[inset_2px_4px_7px_rgba(255,255,255,.2)] rounded-[20px] p-3.5 transition-color duration-100 ease-in-out delay-0" ref={layoutRef}>
+                <div className="w-full h-auto p-2 mt-2 flex items-center justify-start">
+                <div className="w-5 h-5 rounded-full bg-[#fc5753] p-1 m-1 -mt-2 border border-red-800 transform transition-all active:scale-90" onClick={Close}></div>
+                <div className="w-5 h-5 rounded-full bg-[#fdbc40] p-1 m-1 -mt-2 border border-yellow-600 transform transition-all active:scale-90" onClick={BackWide}></div>
+                <div className="w-5 h-5 rounded-full bg-[#33c748] p-1 m-1 -mt-2 border border-green-600 transform transition-all active:scale-90" onClick={Wide}></div>
+                <div className="p-2 align-self-end -mt-3 font-black text-2xl truncate dark:text-slate-200 text-slate-600 uppercase">Calculator <i className="fa fa-calculator px-1"></i></div>
+                </div>
+                 {/*Screen*/}
+                 <div className="w-[97%] h-[145px] bg-[#bbd3ba] overflow-hidden dark:bg-slate-800 rounded-xl shadow-[0_5px_5px_rgba(0,0,0,.03)] dark:shadow-[0_5px_5px_rgba(255,255,255,.15)] mt-1 relative transition-color duration-100 ease-in-out delay-0 mx-auto">
+                 {/*Screen Nav*/}
+          <div className="w-full h-auto p-2 flex">
+                {/*Switch Modes*/}
+             <div className="p-[8px] py-[7px] rounded-lg bg-slate-600 dark:bg-slate-100 transform transition-all active:scale-90 active:bg-opacity-50 cursor-pointer flex items-center justify-center transition-color duration-300 ease-in-out delay-0" onClick={ModeSwitch}>
+          <i className="material-symbols-outlined text-slate-200 dark:text-slate-800 transition-color duration-300 ease-in-out delay-0">{Icon}</i>
+                  </div>
+                 </div>
+                 {/*Calculated Value*/}
+                 <div className={`w-full text-right text-slate-500 font-medium dark:text-slate-400 pr-3 text-[2xl] absolute bottom-[50px] text-lg px-1" ${String(value).length>=13 && value !== 'Syntax Error' ? '-mb-3' : 'mb-0'}`}>{equal}</div>
+                 <div className={`w-full h-[60px] absolute bottom-0 text-right font-black px-2 pr-3 text-slate-700 dark:text-slate-200 overflow-x-auto ${String(value).length >= 13 && value!=="Syntax Error" ? 'text-[25px]' : 'text-[40px]'} ${String(value).length >= 13 && value!=="Syntax Error" ? '-mb-5' : 'mb-0'} `}>
+                 {value}
+                 </div>
+                 </div>
+                 {/*Buttons*/}
+                 <div className="w-full h-auto p-1 mt-3 grid grid-cols-4 place-items-center gap-[7px] mt-2">
+                 <div className="w-full h-full bg-blue-500 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={Clear}>AC</div>
+                   <div className="w-full h-full bg-slate-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert('%')}>%</div>
+                   <div className="w-full h-full bg-slate-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert('EXP')}>EXP</div>
+                   <div className="w-full h-full bg-red-600 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={Delete}><i className="fa fa-backspace text-white"></i></div>
+                 <div className="w-full h-full bg-slate-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert('(')}>(</div>
+                 <div className="w-full h-full bg-slate-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert(')')}>)</div>
+                 <div className="w-full h-full bg-slate-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert('²')}>x²</div>
+                   <div className="w-full h-full bg-orange-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert('÷')}>÷</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(7)}>7</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(8)}>8</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(9)}>9</div>
+                   <div className="w-full h-full bg-orange-400 shadow-inner rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert('×')}>×</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(4)}>4</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(5)}>5</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(6)}>6</div>
+                   <div className="w-full h-full bg-orange-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert('-')}>-</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(1)}>1</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(2)}>2</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert(3)}>3</div>
+                   <div className="w-full h-full bg-orange-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold text-white" onClick={()=>Insert('+')}>+</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 rowspan-2 font-bold" onClick={()=>Insert(0)}>0</div>
+                   <div className="w-full h-full bg-white shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold" onClick={()=>Insert('.')}>.</div>
+                   <div className="w-full h-full bg-[#33c748] shadow-[inset_2px_2px_5px_rgba(0,0,0,.15)] rounded-lg flex items-center justify-center text-xl p-3 px-4 transform transition-all active:scale-90 active:opacity-50 font-bold col-span-2 text-white" onClick={Equal}>=</div>
+                   <div className="w-full col-span-4 flex items-center justify-center text-xs text-slate-600 dark:slate-300 mt-2">@swarupinfotech 2023</div>
+                 </div>
+                </div>
+              </div>
+            );
+        }
+        const Calculator = () =>{
+          const {isBg} = useContext(AppContext);
+          const BgImage = isBg ? "https://cdn.osxdaily.com/wp-content/uploads/2020/10/macos-big-sur-wallpaper-1-scaled.jpg" : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlcQFdo5OyrzLyztgd3R8ZddpZOoBSwyUCHw&usqp=CAU";
+            return(
+                <>
+                 <div className="w-screen h-screen bg-sky-50 dark:bg-gray-900 fixed top-0 overflow-scroll flex items-center justify-center transition-all duration-500 ease-in-out delay-0" style={{backgroundImage:`url(${BgImage})`,backgroundSize:"cover"}}>
+                   <Layout />
+                 </div>
+                </>
+            );
+        }
+        const App = () =>{
+            return(
+                <AppProvider>
+                  <Calculator />
+                </AppProvider>
+            )
+        }
+        const where = document.querySelector("#app");
+        createRoot(where).render(<App />);
+        tailwind.config = {
+          darkMode: "class",
+          extend:{
+              
+          }
+        }</script>
+</head>
+<body>
+    <!-- Created by Swarup Mahato -->
+
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="description" content="A feature-rich calculator app with a Mac OS transparent blurry UI, dark/light mode toggle, and advanced functionality.">
+    <meta property="og:title" content="Calculator App">
+<meta property="og:description" content="A feature-rich calculator app with a Mac OS transparent blurry UI, dark/light mode toggle, and advanced functionality.">
+<meta property="og:image" content="https://i.postimg.cc/nLdKmLrM/20231114-175021.png">
+<meta property="og:url" content="mac-calculator.vercel.app">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+    <link rel="website icon" type="png" url="https://cdn.jim-nielsen.com/macos/128/calculator-2021-04-29.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/d3c9fc67a3.js" crossorigin="anonymous"></script>
+     <title>Calculator App</title>
+    </head>
+    <body>
+     <div id="app"></div>
+    </body>
+</html>
+    
+</body>
+</html>
